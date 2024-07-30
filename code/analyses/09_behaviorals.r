@@ -689,9 +689,9 @@ part_by_test <-
   annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf,
            color = "#000000",  linewidth = 1.2)
 
-ggsave(here("outputs", "plots", "supplementary", "s6_part_per_test.png"),
+ggsave(here("outputs", "plots", "supplementary", "s12_part_per_test.png"),
        part_by_test, width = 11, height = 7, dpi = 600, bg = "white")
-ggsave(here("outputs", "plots", "supplementary", "s6_part_per_test.svg"),
+ggsave(here("outputs", "plots", "supplementary", "s12_part_per_test.svg"),
        part_by_test, width = 11, height = 7, dpi = 600, bg = "white")
 
 

@@ -8,6 +8,7 @@ library(cowplot)
 library(scales)
 library(glue)
 library(ggradar)
+library(patchwork)
 
 source(here("code", "analyses", "helpers.r"))
 # Get atlases info --------
@@ -35,9 +36,7 @@ lobe <- read_csv(here("data", "atlases", "VonEconomo_label_lobe.csv")) |>
   rename("VonEconomo_lobe" = "region_num",
          "VonEconomo_lobe_lab" = "region_name")
 
-
-# remove <- read_csv(here("data", "vertexwise", "index_remove.csv"))
-# Get and arrange lm data --------
+# Get and arrange lm data ------------------------------------------------------
 
 atlases <- read_csv(here("data", "atlases", "all_atlases_surface.csv"))
 area <- read_csv(here("outputs", "vertexwise", "b_area_civet_all_20.csv"))
@@ -60,20 +59,17 @@ ind_remove <-
 
 
 final_surface <- 
-  # bind_cols(volume, atlases) |> 
   bind_cols(volume[-ind_remove,] , atlases[-ind_remove,] ) |>
   mutate(id = row_number()) |> 
   pivot_longer(-c(id, Schaefer_7_1000_7, VonEconomo_Laminar, VonEconomo_Cyto, VonEconomo_lobe), 
                values_to = "volume") |> 
   left_join(
-    # bind_cols(area, atlases) |> 
     bind_cols(area[-ind_remove,] , atlases[-ind_remove,] ) |>
       mutate(id = row_number()) |> 
       pivot_longer(-c(id, Schaefer_7_1000_7, VonEconomo_Laminar, VonEconomo_Cyto, VonEconomo_lobe), 
                    values_to = "area")
   ) |> 
   left_join(
-    # bind_cols(ct, atlases) |> 
     bind_cols(ct[-ind_remove,] , atlases[-ind_remove,] ) |>
       mutate(id = row_number()) |> 
       pivot_longer(-c(id, Schaefer_7_1000_7, VonEconomo_Laminar, VonEconomo_Cyto, VonEconomo_lobe), 
@@ -85,7 +81,7 @@ final_surface <-
   mutate(df = gsub("agemat", "age_mat", df),
          term_c = gsub("agesex", "age_sex", term_c)) 
 
-# Sex estimates -----
+# Sex estimates ----------------------------------------------------------------
 sex_estimates <- 
   final_surface |> 
   filter(term_c == "sex") |> # & df %in% c("matched", "random"))
@@ -291,7 +287,7 @@ ggsave(here("outputs", "plots", "main_figures", "fig2_sex_samples_v2.png"),
 ggsave(here("outputs", "plots", "main_figures", "fig2_sex_samples_v2.svg"),
        sex_estimates_plot_h, width = 11, height = 4, bg = "white", dpi = 600)
 
-## For biological meaning --------
+## For biological meaning ------------------------------------------------------
 matched_sex <- 
   sex_estimates |> 
   filter(df == "matched") |> 
@@ -344,7 +340,6 @@ boxplot_func <- function(sm_df, l_order, l_names, subtitle, y, title) {
     theme(
       plot.subtitle = element_text(size = 16, 
                                    face = "bold", color = "#595959"),
-      # axis.text.x = element_text(size = 8),
       legend.position = "none"
     ) 
 }
@@ -368,7 +363,6 @@ clasifications <- function(df, l_order, l_names, subtitle, color_df,
                    axis.text.x = element_blank())
     a <- a + theme(axis.title.x = element_blank(),
                    axis.text.x = element_blank())
-    # c <- c + theme(axis.text.x = element_text(angle = 90, vjust = .5, hjust = 1))
     plot_grid(v, a, c, ncol = 1, rel_heights = c(.75, .75, 1))
   } else {
     
@@ -381,72 +375,41 @@ clasifications <- function(df, l_order, l_names, subtitle, color_df,
 
 ## Sex estimates in the matched sample
 
-yeo_sex <- clasifications(matched_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_sex <- clasifications(matched_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
+yeo_sex_mv <- clasifications(matched_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
+cyto_sex_mv <- clasifications(matched_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_yeo_sex_v1.png"),
-       yeo_sex, width = 4, height = 10, bg = "white", dpi = 600)
+       yeo_sex_mv, width = 4, height = 10, bg = "white", dpi = 600)
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_cyto_sex_v1.png"),
-       cyto_sex, width = 4, height = 10, bg = "white", dpi = 600)
+       cyto_sex_mv, width = 4, height = 10, bg = "white", dpi = 600)
 
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_yeo_sex_v1.svg"),
-       yeo_sex, width = 4, height = 10, bg = "white", dpi = 600)
+       yeo_sex_mv, width = 4, height = 10, bg = "white", dpi = 600)
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_cyto_sex_v1.svg"),
-       cyto_sex, width = 4, height = 10, bg = "white", dpi = 600)
+       cyto_sex_mv, width = 4, height = 10, bg = "white", dpi = 600)
 
-rm(yeo_sex, cyto_sex)
-
-yeo_sex <- clasifications(matched_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_sex <- clasifications(matched_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
+yeo_sex_mh <- clasifications(matched_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
+cyto_sex_mh <- clasifications(matched_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_yeo_sex_v2.png"),
-       yeo_sex, width = 11, height = 4, bg = "white", dpi = 600)
+       yeo_sex_mh, width = 11, height = 4, bg = "white", dpi = 600)
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_cyto_sex_v2.png"),
-       cyto_sex, width = 11, height = 4, bg = "white", dpi = 600)
+       cyto_sex_mh, width = 11, height = 4, bg = "white", dpi = 600)
 
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_yeo_sex_v2.svg"),
-       yeo_sex, width = 11, height = 4, bg = "white", dpi = 600)
+       yeo_sex_mh, width = 11, height = 4, bg = "white", dpi = 600)
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_cyto_sex_v2.svg"),
-       cyto_sex, width = 11, height = 4, bg = "white", dpi = 600)
-
-rm(yeo_sex, cyto_sex)
+       cyto_sex_mh, width = 11, height = 4, bg = "white", dpi = 600)
 
 ## Sex estimates in the not-matched sample
+yeo_sex_rv <- clasifications(random_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
+cyto_sex_rv <- clasifications(random_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
-yeo_sex <- clasifications(random_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_sex <- clasifications(random_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
-
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_sex_v1.png"),
-       yeo_sex, width = 4, height = 10, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_sex_v1.png"),
-       cyto_sex, width = 4, height = 10, bg = "white", dpi = 600)
-
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_sex_v1.svg"),
-       yeo_sex, width = 4, height = 10, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_sex_v1.svg"),
-       cyto_sex, width = 4, height = 10, bg = "white", dpi = 600)
-
-rm(yeo_sex, cyto_sex)
-
-yeo_sex <- clasifications(random_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_sex <- clasifications(random_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
-
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_sex_v2.png"),
-       yeo_sex, width = 11, height = 4, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_sex_v2.png"),
-       cyto_sex, width = 11, height = 4, bg = "white", dpi = 600)
-
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_sex_v2.svg"),
-       yeo_sex, width = 11, height = 4, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_sex_v2.svg"),
-       cyto_sex, width = 11, height = 4, bg = "white", dpi = 600)
-
-rm(yeo_sex, cyto_sex)
+yeo_sex_rh <- clasifications(random_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
+cyto_sex_rh <- clasifications(random_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
 
-
-
-## Correlations between metrics
+## Correlations between metrics ------------------------------------------------
 get_cors <- function(dat) {
   dat |>
     summarise(
@@ -470,11 +433,10 @@ matched_sex |>
   get_cors()
 
 
-# Age estimates -----
-
+# Age estimates ----------------------------------------------------------------
 age_estimates <- 
   final_surface |> 
-  filter(term_c == "age") |> # & df %in% c("matched", "random"))
+  filter(term_c == "age") |> 
   left_join(samples_ref) |> 
   mutate(clean_sample = factor(clean_sample, 
                                levels = c("Extreme sample",
@@ -483,7 +445,7 @@ age_estimates <-
                                           "TIV and age matched",
                                           "FS e-TIV and age matched")))
 
-## age estimates plot ----
+## age estimates plot ----------------------------------------------------------
 p_age_vol <- 
   ggplot(age_estimates, aes(x = factor(clean_sample), y = volume, 
                             color = clean_sample)) +
@@ -579,10 +541,10 @@ age_estimates |>
   theme_light()
 
 
-ggsave(here("outputs", "plots", "supplementary", "fig2_age_samples.png"),
-       age_estimates_plot, width = 10, height = 4, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_age_samples.svg"),
-       age_estimates_plot, width = 10, height = 4, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "supplementary", "s4_age_samples.png"),
+       age_estimates_plot, width = 4, height = 10, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "supplementary", "s4_age_samples.svg"),
+       age_estimates_plot, width = 4, height = 10, bg = "white", dpi = 600)
 
 ## For biological meaning --------
 matched_age <- 
@@ -602,69 +564,53 @@ random_age <-
   left_join(lobe) 
 
 
-yeo_age <- clasifications(matched_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_age <- clasifications(matched_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
+yeo_age_mv <- clasifications(matched_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
+cyto_age_mv <- clasifications(matched_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_yeo_age_v1.png"),
-       yeo_age, width = 4, height = 10, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_cyto_age_v1.png"),
-       cyto_age, width = 4, height = 10, bg = "white", dpi = 600)
-
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_yeo_age_v1.svg"),
-       yeo_age, width = 4, height = 10, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_cyto_age_v1.svg"),
-       cyto_age, width = 4, height = 10, bg = "white", dpi = 600)
-
-rm(yeo_age, cyto_age)
-
-yeo_age <- clasifications(matched_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_age <- clasifications(matched_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
-
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_yeo_age_v2.png"),
-       yeo_age, width = 11, height = 4, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_cyto_age_v2.png"),
-       cyto_age, width = 11, height = 4, bg = "white", dpi = 600)
-
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_yeo_age_v2.svg"),
-       yeo_age, width = 11, height = 4, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_matched_cyto_age_v2.svg"),
-       cyto_age, width = 11, height = 4, bg = "white", dpi = 600)
-
-rm(yeo_age, cyto_age)
+yeo_age_mh <- clasifications(matched_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
+cyto_age_mh <- clasifications(matched_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
 ## age estimates in the not-matched sample
+yeo_age_rv <- clasifications(random_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
+cyto_age_rv <- clasifications(random_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
-yeo_age <- clasifications(random_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_age <- clasifications(random_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
+yeo_age_rh <- clasifications(random_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
+cyto_age_rh <- clasifications(random_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_age_v1.png"),
-       yeo_age, width = 4, height = 10, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_age_v1.png"),
-       cyto_age, width = 4, height = 10, bg = "white", dpi = 600)
+# Supplementary figures for biological meaning ---------------------------------
 
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_age_v1.svg"),
-       yeo_age, width = 4, height = 10, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_age_v1.svg"),
-       cyto_age, width = 4, height = 10, bg = "white", dpi = 600)
+s_b1 <- plot_grid(yeo_sex_mv, cyto_sex_mv) + 
+  plot_annotation(title = "Matched sample",
+                  theme = theme(plot.title = element_text(size = 16, face = "bold", color = "#ee9b00", hjust = .5)))
+s_b2 <- plot_grid(yeo_sex_rv, cyto_sex_rv) + 
+  plot_annotation(title = "Not matched sample",
+                  theme = theme(plot.title = element_text(size = 16, face = "bold", color = "#ae2012", hjust = .5)))
+s_b3 <- plot_grid(s_b1, s_b2)
+s_bf <- s_b3 + plot_annotation("Sex estimates",
+                    theme = theme(plot.title = element_text(size = 18, face = "bold")))
 
-rm(yeo_age, cyto_age)
+ggsave(here("outputs", "plots", "supplementary", "s5_biol_sex_samples.png"),
+       s_bf, width = 16, height = 10, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "supplementary", "s5_biol_sex_samples.png"),
+       s_bf, width = 16, height = 10, bg = "white", dpi = 600)
 
-yeo_age <- clasifications(random_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_age <- clasifications(random_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_age_v2.png"),
-       yeo_age, width = 11, height = 4, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_age_v2.png"),
-       cyto_age, width = 11, height = 4, bg = "white", dpi = 600)
+a_b1 <- plot_grid(yeo_age_mv, cyto_age_mv) + 
+  plot_annotation(title = "Matched sample",
+                  theme = theme(plot.title = element_text(size = 16, face = "bold", color = "#ee9b00")))
+a_b2 <- plot_grid(yeo_age_rv, cyto_age_rv) + 
+  plot_annotation(title = "Not matched sample",
+                  theme = theme(plot.title = element_text(size = 16, face = "bold", color = "#ae2012")))
+a_b3 <- plot_grid(a_b1, a_b2)
+a_bf <- a_b3 + plot_annotation("Age estimates",
+                               theme = theme(plot.title = element_text(size = 18, face = "bold")))
 
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_yeo_age_v2.svg"),
-       yeo_age, width = 11, height = 4, bg = "white", dpi = 600)
-ggsave(here("outputs", "plots", "supplementary", "fig2_random_cyto_age_v2.svg"),
-       cyto_age, width = 11, height = 4, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "supplementary", "s6_biol_age_samples.png"),
+       a_bf, width = 16, height = 10, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "supplementary", "s6_biol_age_samples.png"),
+       a_bf, width = 16, height = 10, bg = "white", dpi = 600)
 
-rm(yeo_age, cyto_age)
-
-# comparing between samples ----
+# comparing between samples ----------------------------------------------------
 
 sex_data <-   
   final_surface |>
@@ -771,7 +717,7 @@ sex_radar <- function(dat, m1, m2)  {
     gridline.label.offset = 0,
     plot.legend = F
   ) #+
-    # guides(color = guide_legend(override.aes = list(linetype = 0)))
+  # guides(color = guide_legend(override.aes = list(linetype = 0)))
 }
 
 min(vol_cyto[,-1])

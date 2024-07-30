@@ -2,6 +2,7 @@
 library(here)
 source(here("code", "analyses", "00_plotting_functions.r"))
 library(ggcorrplot)
+library(patchwork)
 lm_data_folder <- "trajectories/"
 allometry_data_folder <- "allometry/"
 
@@ -87,7 +88,6 @@ models_guide <-
         analysis = "allometry")
   ) |> tibble()
 
-
 # Fig 1 ------------------------------------------------------------------------
 violin_fig1_v1 <- 
   fviolin(lm_coef, model = as.character(models_guide[1, 1]),
@@ -98,35 +98,6 @@ ggsave(here("outputs", "plots", "main_figures", "fig1_violin_v1_months.png"),
        violin_fig1_v1, width = 3.7, height = 12, bg = "white", dpi = 600)
 ggsave(here("outputs", "plots", "main_figures", "fig1_violin_v1_months.svg"), 
        violin_fig1_v1, width = 3.7, height = 12, bg = "white", dpi = 600)
-
-
-# ggplot(violin_dat |> filter(term_c == "intercept"),
-#        aes(x = factor(clean_sample), y = estimate, 
-#            color = clean_sample)) +
-#   geom_violin(scale = "width", aes(fill = clean_sample), alpha = .5) +
-#   geom_boxplot(width = .3, show.legend = FALSE) +
-#   geom_hline(yintercept = 1,
-#              color = "#595959", linetype = "dashed") +
-#   
-#   labs(
-#     subtitle = "Intercept (for female)",
-#     x = "",
-#     y = "Estimates",
-#   ) +
-#   scale_color_manual(
-#     values = colors_samples,
-#     aesthetics = c("color", "fill")
-#   )+
-#   scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-#   scale_y_continuous(limits = c(.49, 1.5)) +
-#   plots_theme +
-#   theme(
-#     plot.subtitle = element_text(size = 14, 
-#                                  face = "bold", color = "#595959"),
-#     legend.position = "none",
-#   ) 
-
-
 
 # Fig 3 -----------------------------------------------------------------------
 mod_df_allom <- get_plot_df(allom |> filter(window_size == 60), 
@@ -312,7 +283,7 @@ s_intercept <-
                 label.padding = grid::unit(rep(0, 4), "pt")) +
   labs(
     subtitle = "Intercept (for female)",
-    x = ""
+    # x = ""
   ) +
   scale_x_continuous(limits = c(.5, 1.5)) +
   scale_y_continuous(limits = c(.5, 1.5)) +
@@ -335,8 +306,8 @@ s_agem <-
                 label.padding = grid::unit(rep(0, 4), "pt")) +
   labs(
     subtitle = "Age (months)",
-    x = "",
-    y = ""
+    # x = "",
+    # y = ""
   ) +
   scale_x_continuous(limits = c(-.2, .2)) +
   scale_y_continuous(limits = c(-.2, .2)) +
@@ -381,7 +352,7 @@ s_sex_agem <-
                 label.padding = grid::unit(rep(0, 4), "pt")) +
   labs(
     subtitle = "Sex (male):Age (months)",
-    y = ""
+    # y = ""
   ) +
   scale_x_continuous(limits = c(-.2, .2)) +
   scale_y_continuous(limits = c(-.2, .2)) +
@@ -390,7 +361,11 @@ s_sex_agem <-
         plot.subtitle = element_text(size = 14, 
                                      face = "bold", color = "#595959"))  
 
-p2 <- plot_grid(s_intercept, s_agem, s_sex, s_sex_agem, ncol = 2)
+p2 <- plot_grid(s_intercept + theme(axis.title.x = element_blank()), 
+                s_agem + theme(axis.title = element_blank()), 
+                s_sex, 
+                s_sex_agem + theme(axis.title.y = element_blank()), 
+                ncol = 2)
 
 
 ggsave(here("outputs", "plots", "main_figures", "fig3_scatter_v1.png"), 
@@ -398,8 +373,19 @@ ggsave(here("outputs", "plots", "main_figures", "fig3_scatter_v1.png"),
 ggsave(here("outputs", "plots", "main_figures", "fig3_scatter_v1.svg"), 
        p2, width = 8, height = 8, bg = "white", dpi = 600)
 
-#### Allom samp corrs --------------
+p3 <- plot_grid(s_intercept, 
+                s_agem, #+ theme(axis.title.y = element_blank()), 
+                s_sex, # + theme(axis.title.y = element_blank()), 
+                s_sex_agem, # + theme(axis.title.y = element_blank()), 
+                nrow = 1)
 
+
+ggsave(here("outputs", "plots", "main_figures", "fig3_scatter_v2.png"), 
+       p3, width = 16, height = 4, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig3_scatter_v2.svg"), 
+       p3, width = 16, height = 4, bg = "white", dpi = 600)
+
+#### Allom samp corrs ----------------------------------------------------------
 heat_df <- 
   mod_df_allom |> 
   select(clean_sample, term_c, estimate, reg) 
@@ -436,7 +422,9 @@ make_corr_plot <- function(dat, term, cp_t) {
     theme(
       axis.text.x = element_text(size = 9),
       axis.text.y = element_text(hjust = 1, size = 9),
-      legend.position = "none"
+      legend.position = "none",
+      plot.title = element_text(size = 14, 
+                                   face = "bold", color = "#595959")
     )
   
   return(pc)
@@ -447,34 +435,13 @@ cp_s <- make_corr_plot(heat_df, "sex_male", "Sex (male)")
 cp_a <- make_corr_plot(heat_df, "agem", "Age (months)")
 cp_sa <- make_corr_plot(heat_df, "sex_male_agem", "Sex (male):age (months)")
 
-est_cors_plot <- plot_grid(cp_i, cp_s, cp_a, cp_sa)
+est_cors_plot <- plot_grid(cp_i, cp_a, cp_s, cp_sa)
+est_cors_plot <- est_cors_plot + plot_annotation(title = "Correlations of the model's estimates between samples",
+                                                 theme = theme(plot.title = element_markdown(size = 16, face = "bold")))
 
-# title <- ggdraw() + 
-#   draw_label(
-#     "Correlation between the model's estimates",
-#     fontface = 'bold',
-#     x = 0,
-#     hjust = 0,
-#     size = 16,
-#   ) +
-#   theme(
-#     # add margin on the left of the drawing canvas,
-#     # so title is aligned with left edge of first plot
-#     plot.margin = margin(0, 0, 0, 50)
-#   ) 
-# 
-# f_fsnm <- plot_grid(
-#   title, fsnm,
-#   ncol = 1,
-#   # rel_heights values control vertical title margins
-#   rel_heights = c(0.1, 1)
-# )
-
-
-
-ggsave(here("outputs", "plots", "supplementary", "s4_allom_est_corr.png"), 
+ggsave(here("outputs", "plots", "supplementary", "s10_allom_est_corr.png"), 
        est_cors_plot, width = 6.5, height = 6.5, bg = "white")
-ggsave(here("outputs", "plots", "supplementary", "s4_allom_est_corr.svg"), 
+ggsave(here("outputs", "plots", "supplementary", "s10_allom_est_corr.svg"), 
        est_cors_plot, width = 6.5, height = 6.5, bg = "white")
 
 #####################

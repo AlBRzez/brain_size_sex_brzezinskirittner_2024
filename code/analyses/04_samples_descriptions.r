@@ -9,7 +9,7 @@ library(tidyr)
 library(purrr)
 library(ggtext)
 library(glue)
-library(googlesheets4)
+library(patchwork)
 
 options(scipen = 999)
 
@@ -289,29 +289,9 @@ fvsnm_tiv <-
 
 fsnm <- plot_grid(fvsnm_age, fvsnm_tiv, nrow = 2)
 
-# now add the title
-title <- ggdraw() + 
-  draw_label(
-    "Samples distribution: Full vs Not matched samples",
-    fontface = 'bold',
-    x = 0,
-    hjust = 0,
-    size = 16,
-  ) +
-  theme(
-    # add margin on the left of the drawing canvas,
-    # so title is aligned with left edge of first plot
-    plot.margin = margin(0, 0, 0, 50)
-  ) 
 
-f_fsnm <- plot_grid(
-  title, fsnm,
-  ncol = 1,
-  # rel_heights values control vertical title margins
-  rel_heights = c(0.1, 1)
-)
-
-f_fsnm
+f_fsnm <- fsnm + plot_annotation(title = "Samples distribution: <span style='color:#595959'>Full</span> vs <span style='color:#ae2012'>Not matched</span> samples",
+                                  theme = theme(plot.title = element_markdown(size = 16, face = "bold")))
 
 ggsave(here("outputs", "plots", "supplementary", "s1_full_vs_notmatched_samp_dist.png"), 
        f_fsnm, width = 7, height = 10, bg = "white")
