@@ -102,31 +102,31 @@ merge_brains <- function(fold, model, m_name, png_name, w = 14, h = 9) {
 merge_brains("trajectories_reg", "lin_voi_regular", 
              "Sex differenciated aging trajectories", 
              "s2_complete_traj_brains")
-merge_brains("trajectories_reg_colorbar", "lin_voi_regular", 
-             "Sex differenciated aging trajectories", 
-             "s2_complete_traj_brains_cb")
+# merge_brains("trajectories_reg_colorbar", "lin_voi_regular", 
+#              "Sex differenciated aging trajectories", 
+#              "s2_complete_traj_brains_cb")
 
-merge_brains("trajectories_reg_thresh_colorbar", "lin_voi_regular", 
+merge_brains("trajectories_thresh", "lin_voi_regular", 
              "Sex differenciated aging trajectories - where p < 0.05", 
              "s3_complete_traj_brains_thresh")
-merge_brains("trajectories_reg_thresh", "lin_voi_regular", 
-             "Sex differenciated aging trajectories - where p < 0.05", 
-             "s3_complete_traj_brains_thresh_cb")
+# merge_brains("trajectories_reg_thresh", "lin_voi_regular", 
+#              "Sex differenciated aging trajectories - where p < 0.05", 
+#              "s3_complete_traj_brains_thresh_cb")
 
 merge_brains("vertex_vol", "vol", 
              "Sex differenciated aging trajectories - volumetric vertexwise data", 
              "s7_vertexwise_volume")
-merge_brains("vertex_vol", "vol", 
+merge_brains("vertex_area", "area", 
              "Sex differenciated aging trajectories - surface area vertexwise data", 
              "s8_vertexwise_area")
-merge_brains("vertex_area", "ct", 
+merge_brains("vertex_ct", "ct", 
              "Sex differenciated aging trajectories - cortical thickness vertexwise data", 
              "s9_vertexwise_ct")
 
 merge_brains("allom_60m_reg", "lin_int_regular", "Allometry estimates", 
              "s11_complete_allometry", w = 17)
-merge_brains("allom_60m_reg_colorbar", "lin_int_regular", "Allometry estimates", 
-             "s11_complete_allometry_cb", w = 17)
+# merge_brains("allom_60m_reg_colorbar", "lin_int_regular", "Allometry estimates", 
+#              "s11_complete_allometry_cb", w = 17)
 
 merge_brains("fluid_inteligence_thresh", "fluid_int", 
              "Model over fluid inteligence - where p < 0.05", 

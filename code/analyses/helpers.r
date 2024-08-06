@@ -88,7 +88,9 @@ samp_order <- c(
   "FS e-TIV and age matched"
 )
   
-color_sex <- c("Male" = "#26547C", "Female" = "#bb3e03")
+# color_sex <- c("Male" = "#26547C", "Female" = "#bb3e03")
+color_sex <- c("Male" = "#F4632E", "Female" = "#6A559C")
+# color_sex <- c("Male" = "#EF5423", "Female" = "#4C3681")
 
 get_samples <- function(path, fs = FALSE) {
   full <- readr::read_csv(paste0(path, "/full_sample.csv"))

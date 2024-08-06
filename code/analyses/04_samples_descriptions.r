@@ -178,30 +178,10 @@ comp_plot <- function(samp, samp_name) {
     guides(color = guide_legend(override.aes = list(linetype = c(1, 1),
                                                     alpha = c(1,1))))
   
-  p <- plot_grid(a, t, nrow = 2)
-  
-  # now add the title
-  title <- ggdraw() + 
-    draw_label(
-      samp_name,
-      fontface = 'bold',
-      x = 0,
-      hjust = 0,
-      size = 18,
-    ) +
-    theme(
-      # add margin on the left of the drawing canvas,
-      # so title is aligned with left edge of first plot
-      plot.margin = margin(0, 0, 0, 50)
-    ) 
-  
-  fp <- plot_grid(
-    title, p,
-    ncol = 1,
-    # rel_heights values control vertical title margins
-    rel_heights = c(0.1, 1)
-  )
-  return(fp)
+  p <- (a / t) +
+    plot_annotation(title = samp_name,
+                    theme = theme(plot.title = element_text(size = 18, face = "bold")))
+  return(p)
 }
 
 
@@ -317,8 +297,8 @@ tiv_tbv <- function(samp, samp_name) {
       title = samp_name,
       x = "Age",
       y = "Volume (mm<sup>3</sup>)") +
-    scale_color_manual(values = c("TBV" = "#178276", "TIV" = "#2e294e",
-                                  "tbv" = "#1fad9d",  "tiv" = "#594f96"),
+    scale_color_manual(values = c("TBV" = "#178276", "TIV" = "#26547C",
+                                  "tbv" = "#1fad9d",  "tiv" = "#6384a1"),
                        aesthetics = c("color", "fill")) +
     scale_x_continuous(limits = c(530, 990), breaks = seq(540, 960, 60),
                        labels = seq(45, 80, 5)) +

@@ -309,7 +309,8 @@ yeo_c <- tibble(Schaefer_7_1000_7 = 1:7,
                           "#C43AFA", "#DCF8A4", "#E69422", "#CD3E4E"))
 cyto_c <- tibble(cyto_order = 1:7,
                  color = c("#781286", "#4682B4", "#00760E",  "#E69422",
-                           "#DCF8A4", "#00afb9", "#C43AFA"))
+                           "#DCF8A4", "#00afb9", "#C43AFA")) |> 
+  left_join(cyto |> select(VonEconomo_Cyto, cyto_order))
 
 laminar_c <- tibble(VonEconomo_Laminar = 1:4,
                     color = c("#99d98c", "#52b69a", "#168aad", "#1e6091"))
@@ -376,7 +377,7 @@ clasifications <- function(df, l_order, l_names, subtitle, color_df,
 ## Sex estimates in the matched sample
 
 yeo_sex_mv <- clasifications(matched_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_sex_mv <- clasifications(matched_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
+cyto_sex_mv <- clasifications(matched_sex, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_yeo_sex_v1.png"),
        yeo_sex_mv, width = 4, height = 10, bg = "white", dpi = 600)
@@ -389,7 +390,7 @@ ggsave(here("outputs", "plots", "main_figures", "fig2_matched_cyto_sex_v1.svg"),
        cyto_sex_mv, width = 4, height = 10, bg = "white", dpi = 600)
 
 yeo_sex_mh <- clasifications(matched_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_sex_mh <- clasifications(matched_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
+cyto_sex_mh <- clasifications(matched_sex, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
 ggsave(here("outputs", "plots", "main_figures", "fig2_matched_yeo_sex_v2.png"),
        yeo_sex_mh, width = 11, height = 4, bg = "white", dpi = 600)
@@ -403,10 +404,10 @@ ggsave(here("outputs", "plots", "main_figures", "fig2_matched_cyto_sex_v2.svg"),
 
 ## Sex estimates in the not-matched sample
 yeo_sex_rv <- clasifications(random_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_sex_rv <- clasifications(random_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
+cyto_sex_rv <- clasifications(random_sex, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
 yeo_sex_rh <- clasifications(random_sex, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_sex_rh <- clasifications(random_sex, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
+cyto_sex_rh <- clasifications(random_sex, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
 
 ## Correlations between metrics ------------------------------------------------
@@ -451,8 +452,8 @@ p_age_vol <-
                             color = clean_sample)) +
   geom_violin(scale = "width", aes(fill = clean_sample), alpha = .5) +
   geom_boxplot(width = .3, show.legend = FALSE) +
-  geom_hline(yintercept = median(age_estimates$volume[age_estimates$df == "random"]),
-             show.legend = FALSE) +
+  # geom_hline(yintercept = median(age_estimates$volume[age_estimates$df == "random"]),
+  #            show.legend = FALSE) +
   geom_hline(yintercept = 0,
              color = "#595959", linetype = "dashed") +
   
@@ -481,8 +482,8 @@ p_age_area <-
   geom_boxplot(width = .3, show.legend = FALSE) +
   geom_hline(yintercept = 0,
              color = "#595959", linetype = "dashed") +
-  geom_hline(yintercept = median(age_estimates$area[age_estimates$df == "random"]),
-             show.legend = FALSE) +
+  # geom_hline(yintercept = median(age_estimates$area[age_estimates$df == "random"]),
+  #            show.legend = FALSE) +
   
   labs(
     subtitle = "Surface area",
@@ -509,8 +510,8 @@ p_age_ct <-
   geom_boxplot(width = .3, show.legend = FALSE) +
   geom_hline(yintercept = 0,
              color = "#595959", linetype = "dashed") +
-  geom_hline(yintercept = median(age_estimates$ct[age_estimates$df == "random"]),
-             show.legend = FALSE) +
+  # geom_hline(yintercept = median(age_estimates$ct[age_estimates$df == "random"]),
+  #            show.legend = FALSE) +
   
   labs(
     subtitle = "Cortical thickness",
@@ -546,6 +547,7 @@ ggsave(here("outputs", "plots", "supplementary", "s4_age_samples.png"),
 ggsave(here("outputs", "plots", "supplementary", "s4_age_samples.svg"),
        age_estimates_plot, width = 4, height = 10, bg = "white", dpi = 600)
 
+
 ## For biological meaning --------
 matched_age <- 
   age_estimates |> 
@@ -565,17 +567,17 @@ random_age <-
 
 
 yeo_age_mv <- clasifications(matched_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_age_mv <- clasifications(matched_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
+cyto_age_mv <- clasifications(matched_age, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
 yeo_age_mh <- clasifications(matched_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_age_mh <- clasifications(matched_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
+cyto_age_mh <- clasifications(matched_age, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
 ## age estimates in the not-matched sample
 yeo_age_rv <- clasifications(random_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "vertical")
-cyto_age_rv <- clasifications(random_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
+cyto_age_rv <- clasifications(random_age, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "vertical")
 
 yeo_age_rh <- clasifications(random_age, "Schaefer_7_1000_7", "yeo_network_ab", "Functional networks", yeo_c, "horizontal")
-cyto_age_rh <- clasifications(random_age, "cyto_order", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
+cyto_age_rh <- clasifications(random_age, "VonEconomo_Cyto", "region_name_ab", "Cytoarchitectonic classes", cyto_c, "horizontal")
 
 # Supplementary figures for biological meaning ---------------------------------
 
@@ -631,7 +633,7 @@ cyto_radar <-
   pivot_longer(-c(clean_sample, VonEconomo_Cyto), 
                names_to = "metric", values_to = "val") |>
   left_join(cyto) |> 
-  arrange(cyto_order) |> 
+  arrange(VonEconomo_Cyto) |> 
   select(val, metric, clean_sample, region_name_ab) |> 
   pivot_wider(names_from = region_name_ab, values_from = val) 
 
@@ -767,4 +769,13 @@ ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_area.png"),
        radar_sch_area, width = 5, height = 5, dpi = 600, bg = "white")
 ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_area.svg"),
        radar_sch_area, width = 5, height = 5, dpi = 600, bg = "white")
+
+complete_radars <- 
+  (radar_sch_vol | radar_sch_area | radar_sch_ct) / (radar_cyto_vol | radar_cyto_area | radar_cyto_ct) 
+
+ggsave(here("outputs", "plots", "main_figures", "fig2_complete_radars.png"),
+       complete_radars, width = 10, height = 6, dpi = 600, bg = "white")
+ggsave(here("outputs", "plots", "main_figures", "fig2_complete_radars.svg"),
+       complete_radars, width = 10, height = 6, dpi = 600, bg = "white")
+
 

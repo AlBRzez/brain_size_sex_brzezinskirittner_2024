@@ -671,7 +671,7 @@ part_by_test <-
            stat = "identity", position = "dodge") +
   labs(
     title = "Participants with information for the cognitive tests",
-    subtitle = "Number of <span style='color:#bb3e03'>females</span> and <span style='color:#26547c'>males</span> for each test",
+    subtitle = "Number of <span style='color:#6A559C'>females</span> and <span style='color:#F4632E'>males</span> for each test",
     x = "",
     y = "Participants"
   ) +

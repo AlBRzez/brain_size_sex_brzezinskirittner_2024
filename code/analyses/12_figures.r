@@ -271,7 +271,7 @@ allom_cor_df <-
 
 s_intercept <- 
   ggplot(scat_df |> filter(term_c == "intercept"),
-         aes(x = `TIV and age matched`, y = `Not matched`)) +
+         aes(x = `Not matched`, y = `TIV and age matched`)) +
   geom_hline(yintercept = 1, color = "#595959", linetype = 2) +
   geom_vline(xintercept = 1, color = "#595959", linetype = 2) +
   geom_point(alpha = .4) +
@@ -294,7 +294,7 @@ s_intercept <-
 
 s_agem <- 
   ggplot(scat_df |> filter(term_c == "agem"),
-         aes(x = `TIV and age matched`, y = `Not matched`)) +
+         aes(x = `Not matched`, y = `TIV and age matched`)) +
   geom_hline(yintercept = 0, color = "#595959", linetype = 2) +
   geom_vline(xintercept = 0, color = "#595959", linetype = 2) +
   geom_point(alpha = .4) +
@@ -318,7 +318,7 @@ s_agem <-
 
 s_sex <- 
   ggplot(scat_df |> filter(term_c == "sex_male"),
-         aes(x = `TIV and age matched`, y = `Not matched`)) +
+         aes(x = `Not matched`, y = `TIV and age matched`)) +
   geom_hline(yintercept = 0, color = "#595959", linetype = 2) +
   geom_vline(xintercept = 0, color = "#595959", linetype = 2) +
   geom_point(alpha = .4) +
@@ -422,9 +422,10 @@ make_corr_plot <- function(dat, term, cp_t) {
     theme(
       axis.text.x = element_text(size = 9),
       axis.text.y = element_text(hjust = 1, size = 9),
-      legend.position = "none",
+      legend.position = "bottom",
+      legend.title = element_blank(),
       plot.title = element_text(size = 14, 
-                                   face = "bold", color = "#595959")
+                                face = "bold", color = "#595959")
     )
   
   return(pc)
@@ -435,7 +436,10 @@ cp_s <- make_corr_plot(heat_df, "sex_male", "Sex (male)")
 cp_a <- make_corr_plot(heat_df, "agem", "Age (months)")
 cp_sa <- make_corr_plot(heat_df, "sex_male_agem", "Sex (male):age (months)")
 
-est_cors_plot <- plot_grid(cp_i, cp_a, cp_s, cp_sa)
+
+ggarrange(cp_i, cp_a, cp_s, cp_sa, ncol=2, nrow=2, common.legend = TRUE, legend="bottom")
+
+est_cors_plot <- ggarrange(cp_i, cp_a, cp_s, cp_sa, ncol=2, nrow=2, common.legend = TRUE, legend="bottom")#plot_grid(cp_i, cp_a, cp_s, cp_sa)
 est_cors_plot <- est_cors_plot + plot_annotation(title = "Correlations of the model's estimates between samples",
                                                  theme = theme(plot.title = element_markdown(size = 16, face = "bold")))
 

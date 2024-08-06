@@ -15,27 +15,25 @@ atlases = load(strcat(tools,'parcellations_atlas_mni/yz_atlasses/all_atlases_vec
 
 %% Loading data
 folder='/data/zeiyas/brzali/brain_size_sex_brzezinskirittner_2024/outputs/plots/brainplots';
-Info=readtable(strcat(folder, '/brainplots_data/trajectories_reg.csv'),'Delimiter',',');%for
+Info=readtable(strcat(folder, '/brainplots_data/fluid_inteligence_estimates.csv'),'Delimiter',',');%for
 CerebraInfo=readtable('cerebra_reference.csv','Delimiter',',');CerebraInfo = sortrows(CerebraInfo,'newlabels','ascend');
 %%
-%rdbu=readtable("redblue_rgb.csv");
-rdbu=readtable("redblue_rgb_i.csv");
-rdbu=table2array(rdbu);
+colors_p=readtable("PuOr.csv");
+colors_p=table2array(colors_p);
 
 %%
-out_fold='trajectories_reg_colorbar';
+out_fold='fluid_inteligence';
 
 %% regions matrix
 % Each column represents the regional estimates for one sample for one contrast
-samples=["extreme", "random", "age_mat", "matched"];
-%samples=["random", "matched"]; % for fluid inteligence
+%samples=["extreme", "random", "age_mat", "matched"];
+samples=["random", "matched"]; % for fluid inteligence
 n_samp=length(samples);
-contrasts=["intercept", "agem", "sex_male", "sex_male_agem"];%age in months
+%contrasts=["intercept", "agem", "sex_male", "sex_male_agem"];%age in months
 %contrasts=["intercept", "male_int", "agem", "sex_male", "sex_male_agem", "male_slope"];% allometry - age in months
-%contrasts=unique(Info.term_c); %for fluid inteligence
+contrasts=["intercept", "agem", "sex_male", "voi", "sex_male_voi"];%age in months; %for fluid inteligence
 n_cont=length(contrasts);
-%unique_models=unique(Info.mod);
-model="lin_voi_regular";
+model="fluid_int";
 
 %% For the cool iterations
 % looping through each sample and contrast to get the ordered values
@@ -72,48 +70,46 @@ u_regions = unique(Cerebra_s);u_regions(u_regions==0)=[];
 
 %% plotting in a loop
 % Regional color ranges for each analysis
-range_c = [1, 0.5, 1.5, 0.1]; %used for regular lm trajectories
+%range_c = [1, 0.5, 1.5, 0.1]; %used for regular lm trajectories
 %range_c=[1.5, 1.5, .1, .15 .15, .1]; %all allometry
-%range_c = [.1, .1, .2, .1, .25]; %fluid intelligence
+range_c = [.1, .1, .25, .25, .1]; %fluid intelligence
 
-nrdbu = rdbu/255;
-nrdbu2 = [[1,1,1];nrdbu];
-nrdbu2(48,:)=[];
+ncolors = colors_p/255;
+ncolors2= [[1,1,1];ncolors];
+ncolors2(50,:)=[];
 %%
 for i=1:n_samp
     for j=1:n_cont
         out = regions(:,(i-1)*n_cont+j);out = out(u_regions);
         out_s = region_to_atlas(out,Cerebra_s);
         out_s(abs(out_s) < range_c(j)/93 & out_s ~= 0) = range_c(j)/93 + eps;
-        %cmap=colormap('jet');cmap_new = [cmap(1:32,:);[192,192,192]/255;cmap(33:64,:)]; colormap(cmap_new)
-        %if ismember(j, [1, 2])
-        %    colormap(nrdbu2)
+
+        %if ismember(j, [1, 2]) %for allometry
+        %    colormap(ncolors2)
         %    figure;SurfStatViewData_yz_22(out_s,s,[.5,range_c(j)],strcat('estimate'));
         %    pause(1);set(gcf,'color','w');colorbar off
-        %    colormap(nrdbu2)
+        %    colormap(ncolors2)
         %else
-        %if ismember(j, [1,2])
-        %   cm = nrdbu2;
-        %else
-        cm = nrdbu;
+        cm = ncolors;
         %end
 
-        if i == 4
-            colormap(cm)
-            figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
-            pause(1);set(gcf,'color','w')
-            colormap(cm)
-        else
-            colormap(cm)
-            figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
-            pause(1);set(gcf,'color','w');colorbar off
-            colormap(cm)
-        end
+        %if i == 4 %conditional if we want to add a colorbar in the matched
+        %    colormap(cm)
+        %    figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
+        %    pause(1);set(gcf,'color','w')
+        %    colormap(cm)
+        %else
+        colormap(cm)
+        figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
+        pause(1);set(gcf,'color','w');colorbar off
+        colormap(cm)
         %end
-
+        %end
 
         export_fig(strcat(folder, '/', out_fold, '/', model, '_', samples(i),'_',contrasts(j),'.png'),'-m4')
     end
 end
 %%
-%imagesc(-1:.01:1);colormap(nrdbu);colorbar
+
+close all
+%imagesc(-1:.01:1);colormap(ncolors);colorbar
