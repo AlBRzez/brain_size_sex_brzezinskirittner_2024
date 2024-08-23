@@ -3,14 +3,13 @@ library(dplyr)
 library(readr)
 library(here)
 library(tidyr)
-library(ggplot2)
 
 source(here("code", "analyses", "helpers.r"))
 print("loaded packages")
 
 output_fold <- "allometry"
-if(!dir.exists(here("our_data", output_fold))) {
-  dir.create(here("our_data", output_fold))
+if(!dir.exists(here("outputs", output_fold))) {
+  dir.create(here("outputs", output_fold))
 }
 # Get data ---------------------------------------------------------------------
 brain_sizes <- read_csv(here("data", "fs_data", "brain_sizes.csv"))
@@ -88,59 +87,78 @@ get_est_mat <- function(df, f_sex, voi, win_size){#, m_names) {
     orig_n = numeric(),
     final_n_1d = numeric(),
     final_n_2d = numeric(),
+    r_age = numeric(),
+    final_region = character(),
   )
   
-  j <- 1
+  j <- 0
   mat_c <- matrix(1, nrow = length(voi))
   
-  sex_df <- 
-    df |> 
-    filter(sex == f_sex & (age_years > 49 & age_years < 76))
+  sex_df <-
+    df |>
+    # filter(sex == f_sex & (age_years > 49 & age_years < 76))
+    filter(sex == f_sex & (age_months >= 600 & age_months < 912))
+  
   for(month in ((min(sex_df$age_months) + win):(max(sex_df$age_months) - win))) {
-    df_size[j, 1] <- month
-    age_dat <- 
-      sex_df |> 
+    j1 <- 1 + (j * 78)
+    df_size[j1, 1] <- month
+    # df_size[j, 1] <- month
+    age_dat <-
+      sex_df |>
       filter(age_months >= month - win & age_months <= month + win)
-    df_size[j, 2] <- nrow(age_dat)
+    df_size[j1, 2] <- nrow(age_dat)
     
     
     # Outliers
-    Q <- quantile(age_dat$tbv)
+    Q <- quantile(age_dat$log_tbv)
     IQR <- Q[4] - Q[2]
-    lower <- (Q[2] - 1.5 * IQR) 
+    lower <- (Q[2] - 1.5 * IQR)
     upper <- (Q[4] + 1.5 * IQR)
     
-    age_dat <- 
-      age_dat |> 
-      filter(tbv > lower & tbv < upper)
+    age_dat <-
+      age_dat |>
+      filter(log_tbv > lower & log_tbv < upper)
     
-    df_size[j, 3] <- nrow(age_dat)
+    df_size[j1, 3] <- nrow(age_dat)
     
-    v <- vector() 
+    v <- vector()
+    n <- 0
     for (i in voi) {
       Qr <- quantile(age_dat |> pull(!!sym(i)))
       IQRr <- Qr[4] - Qr[2]
-      lowerr <- (Qr[2] - 1.5 * IQRr) 
+      lowerr <- (Qr[2] - 1.5 * IQRr)
       upperr <- (Qr[4] + 1.5 * IQRr)
       
-      reg_dat <- 
-        age_dat |> 
+      reg_dat <-
+        age_dat |>
         filter(!!sym(i) > lowerr & !!sym(i) < upperr)
       
-      df_size[j, 4] <- nrow(reg_dat)
+      df_size[j1 + n, 4] <- nrow(reg_dat)
+      df_size[j1 + n, 5] <- mean(reg_dat$age_months)
+      df_size[j1 + n, 6] <- i
       
-      mod <- lm(get(i) ~ log_tbv, data = reg_dat)
+      mod <- lm(get(i) ~ 1 + log_tbv, data = reg_dat)
       v <- append(v, mod$coefficients[2])
-      rm(mod)
+      rm(mod, reg_dat)
+      n <- n + 1
     }
+    
     mat_c <- cbind(mat_c, v)
     m_names <- c(m_names, paste0("month_", month))
+    
     j <- j + 1
+    gc()
   }
   
   out_mat <- mat_c[,-1]
   out_mat <- as_tibble(out_mat)
   names(out_mat) <- m_names
+  out_mat$final_region <- voi
+  
+  df_size <- 
+    df_size |> 
+    fill(months, orig_n, final_n_1d)
+  
   return(list(out_mat, df_size))
 }
 
@@ -148,7 +166,7 @@ print("Declared functions")
 print("Starting the itteration")
 
 for(m in c(20, 50, 60, 76, 100)) {
-# for(m in 60 ) {
+# for(m in 60) {
   print(paste("M =", m))
   tic <- Sys.time()
   mat_full_fem <- get_est_mat(full_log, "Female", voi, m)
@@ -175,8 +193,24 @@ for(m in c(20, 50, 60, 76, 100)) {
   rm(mat_full_fem, mat_full_mal, mat_matched_fem, mat_matched_mal,
      mat_extreme_fem, mat_extreme_mal, mat_agemat_fem, mat_agemat_mal,
      mat_random_fem, mat_random_mal, mat_fsmat_fem, mat_fsmat_mal)
+  gc()
 }
 
 voi_order <- tibble(voi = voi,
                     order = 1:length(voi))
 write_csv(voi_order, here("outputs", output_fold, "voi_order.csv"))
+
+# 
+# write_csv(mat_matched_fem[[1]], here("outputs/", output_fold, "matched_fem.csv"))
+# write_csv(mat_matched_mal[[1]], here("outputs/", output_fold, "matched_mal.csv"))
+# write_csv(mat_random_fem[[1]], here("outputs/", output_fold, "random_fem.csv"))
+# write_csv(mat_random_mal[[1]], here("outputs/", output_fold, "random_mal.csv"))
+# write_csv(mat_matched_fem[[2]], here("outputs/", output_fold, "matched_fem_info.csv"))
+# write_csv(mat_matched_mal[[2]], here("outputs/", output_fold, "matched_mal_info.csv"))
+# write_csv(mat_random_fem[[2]], here("outputs/", output_fold, "random_fem_info.csv"))
+# write_csv(mat_random_mal[[2]], here("outputs/", output_fold, "random_mal_info.csv"))
+# 
+# 
+# save(mat_matched_fem, mat_matched_mal,
+#      mat_random_fem, mat_random_mal,
+#      file = here("outputs", output_fold, paste0("tbv_month_outliersrem_2d_",m,"m.RData")))

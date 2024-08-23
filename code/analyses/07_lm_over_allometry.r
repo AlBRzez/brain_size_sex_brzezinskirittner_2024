@@ -15,32 +15,38 @@ vol_guide <-
   fs_guide |> 
   filter(ignore == 0) 
 
-voi_order <- read_csv(here("outputs", output_folder, "voi_order.csv"))
-voi_order <- 
-  voi_order |> 
-  rename("final_region" = "voi") |> 
-  left_join(vol_guide)
+# voi_order <- read_csv(here("outputs", output_folder, "voi_order.csv"))
+# 
+# voi_order <- 
+#   voi_order |> 
+#   rename("final_region" = "voi") |> 
+#   left_join(vol_guide)
+# 
+# reg_nums <- vol_guide$reg
 
-reg_nums <- vol_guide$reg
+voi_order <- vol_guide |> select(final_region, reg)
+reg_nums <- voi_order$reg
 
 # Functions -------
-join_data <- function(female_obj, male_obj, nums) {
+join_data <- function(female_obj, male_obj, reg_guide) {
   # Function for joining female and male data for a window
   fem <- 
     female_obj[[1]] |>
     mutate(
       sex = "Female",
-      reg = nums
-    ) 
+      # reg = nums
+    ) |> 
+    left_join(reg_guide)
   
   mal <- 
     male_obj[[1]] |>
     mutate(
       sex = "Male",
-      reg = nums
-    ) 
+      # reg = nums
+    ) |> 
+    left_join(reg_guide)
   
-  out <- bind_rows(fem, mal)
+  out <- bind_rows(fem, mal) |> select(-final_region)
   return(out)
 }
 
@@ -54,8 +60,9 @@ region_models <- function(allom_data, reg_num) {
     select(-c(reg, df)) |>
     pivot_longer(-sex) |>
     mutate(month = as.numeric(gsub("month_", "", name)))
-  ml <- lm(value ~ sex * scale(month), data = tmp)
-  mq <- lm(value ~ sex * (scale(month) + scale(I(month^2))), data = tmp)
+  
+  ml <- lm(value ~ 1 + sex * scale(month), data = tmp)
+  mq <- lm(value ~ 1 + sex * (scale(month) + scale(I(month^2))), data = tmp)
   
   coef <- 
     bind_rows(
@@ -89,11 +96,11 @@ for(ws in c(20, 50, 60, 76, 100)) {
   load(rdata_path)
   
   dfs <- vector(mode = "list", length = 5)
-  dfs[[1]] <- join_data(mat_full_fem, mat_full_mal, reg_nums) |> mutate(df = dfs_n[1])
-  dfs[[2]] <- join_data(mat_extreme_fem, mat_extreme_mal, reg_nums)|> mutate(df = dfs_n[2])
-  dfs[[3]] <- join_data(mat_agemat_fem, mat_agemat_mal, reg_nums)|> mutate(df = dfs_n[3])
-  dfs[[4]] <- join_data(mat_random_fem, mat_random_mal, reg_nums)|> mutate(df = dfs_n[4])
-  dfs[[5]] <- join_data(mat_matched_fem, mat_matched_mal, reg_nums)|> mutate(df = dfs_n[5])
+  dfs[[1]] <- join_data(mat_full_fem, mat_full_mal, voi_order) |> mutate(df = dfs_n_c[1])
+  dfs[[5]] <- join_data(mat_matched_fem, mat_matched_mal, voi_order)|> mutate(df = dfs_n_c[2])
+  dfs[[3]] <- join_data(mat_agemat_fem, mat_agemat_mal, voi_order)|> mutate(df = dfs_n_c[3])
+  dfs[[4]] <- join_data(mat_random_fem, mat_random_mal, voi_order)|> mutate(df = dfs_n_c[4])
+  dfs[[2]] <- join_data(mat_extreme_fem, mat_extreme_mal, voi_order)|> mutate(df = dfs_n_c[5])
   allometry_data <- bind_rows(dfs) |> mutate(window_size = ws)
   write_csv(allometry_data, paste0("outputs/", output_folder, "/complete_allometry_tbv_", ws, "months.csv"))
   
