@@ -66,9 +66,9 @@ new_tbv <-
 
 full_log <- log_df_vol(full |> inner_join(new_tbv), log_fs_data)
 matched_log <- log_df_vol(matched |> inner_join(new_tbv), log_fs_data)
-extreme_log <- log_df_vol(extreme |> inner_join(new_tbv), log_fs_data)
-random_log <- log_df_vol(random |> inner_join(new_tbv), log_fs_data)
 age_mat_log <- log_df_vol(age_mat |> inner_join(new_tbv), log_fs_data)
+random_log <- log_df_vol(random |> inner_join(new_tbv), log_fs_data)
+extreme_log <- log_df_vol(extreme |> inner_join(new_tbv), log_fs_data)
 fs_matc_log <- log_df_vol(fs_matc |> inner_join(new_tbv), log_fs_data)
 
 

@@ -88,7 +88,6 @@ tic <- Sys.time()
 complete_coefs <- tibble()
 complete_good <- tibble()
 complete_d <- tibble()
-dfs_n <- dfs_n_c[1:5]
 
 for(ws in c(20, 50, 60, 76, 100)) {
 # for(ws in 60) {
@@ -97,10 +96,10 @@ for(ws in c(20, 50, 60, 76, 100)) {
   
   dfs <- vector(mode = "list", length = 5)
   dfs[[1]] <- join_data(mat_full_fem, mat_full_mal, voi_order) |> mutate(df = dfs_n_c[1])
-  dfs[[5]] <- join_data(mat_matched_fem, mat_matched_mal, voi_order)|> mutate(df = dfs_n_c[2])
+  dfs[[2]] <- join_data(mat_matched_fem, mat_matched_mal, voi_order)|> mutate(df = dfs_n_c[2])
   dfs[[3]] <- join_data(mat_agemat_fem, mat_agemat_mal, voi_order)|> mutate(df = dfs_n_c[3])
   dfs[[4]] <- join_data(mat_random_fem, mat_random_mal, voi_order)|> mutate(df = dfs_n_c[4])
-  dfs[[2]] <- join_data(mat_extreme_fem, mat_extreme_mal, voi_order)|> mutate(df = dfs_n_c[5])
+  dfs[[5]] <- join_data(mat_extreme_fem, mat_extreme_mal, voi_order)|> mutate(df = dfs_n_c[5])
   allometry_data <- bind_rows(dfs) |> mutate(window_size = ws)
   write_csv(allometry_data, paste0("outputs/", output_folder, "/complete_allometry_tbv_", ws, "months.csv"))
   
@@ -113,13 +112,13 @@ for(ws in c(20, 50, 60, 76, 100)) {
       reg <- region_models(dfs[[samp]], r)
       coefficients <- bind_rows(coefficients, 
                                 reg[[1]] |> 
-                                  mutate(df = dfs_n[[samp]]))
+                                  mutate(df = dfs_n_c[[samp]]))
       goodness <- bind_rows(goodness, 
                             reg[[2]]|> 
-                              mutate(df = dfs_n[[samp]]))    
+                              mutate(df = dfs_n_c[[samp]]))    
       coh_d <- bind_rows(coh_d, 
                          reg[[3]]|> 
-                           mutate(df = dfs_n[[samp]]))    
+                           mutate(df = dfs_n_c[[samp]]))    
     }
   }
   

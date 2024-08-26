@@ -15,25 +15,25 @@ atlases = load(strcat(tools,'parcellations_atlas_mni/yz_atlasses/all_atlases_vec
 
 %% Loading data
 folder='/data/zeiyas/brzali/brain_size_sex_brzezinskirittner_2024/outputs/plots/brainplots';
-Info=readtable(strcat(folder, '/brainplots_data/fluid_inteligence_estimates.csv'),'Delimiter',',');%for
+Info=readtable(strcat(folder, '/brainplots_data/allom_60m.csv'),'Delimiter',',');%for
 CerebraInfo=readtable('cerebra_reference.csv','Delimiter',',');CerebraInfo = sortrows(CerebraInfo,'newlabels','ascend');
 %%
 colors_p=readtable("PuOr.csv");
 colors_p=table2array(colors_p);
 
 %%
-out_fold='fluid_inteligence';
+out_fold='allom_60m_reg';
 
 %% regions matrix
 % Each column represents the regional estimates for one sample for one contrast
-%samples=["extreme", "random", "age_mat", "matched"];
-samples=["random", "matched"]; % for fluid inteligence
+samples=["extreme", "random", "age_mat", "matched"];
+%samples=["random", "matched"]; % for fluid inteligence
 n_samp=length(samples);
 %contrasts=["intercept", "agem", "sex_male", "sex_male_agem"];%age in months
-%contrasts=["intercept", "male_int", "agem", "sex_male", "sex_male_agem", "male_slope"];% allometry - age in months
-contrasts=["intercept", "agem", "sex_male", "voi", "sex_male_voi"];%age in months; %for fluid inteligence
+contrasts=["intercept", "male_int", "agem", "sex_male", "sex_male_agem", "male_slope"];% allometry - age in months
+%contrasts=["intercept", "agem", "sex_male", "voi", "sex_male_voi"];%age in months; %for fluid inteligence
 n_cont=length(contrasts);
-model="fluid_int";
+model="lin_int_regular";
 
 %% For the cool iterations
 % looping through each sample and contrast to get the ordered values
@@ -71,8 +71,8 @@ u_regions = unique(Cerebra_s);u_regions(u_regions==0)=[];
 %% plotting in a loop
 % Regional color ranges for each analysis
 %range_c = [1, 0.5, 1.5, 0.1]; %used for regular lm trajectories
-%range_c=[1.5, 1.5, .1, .15 .15, .1]; %all allometry
-range_c = [.1, .1, .25, .25, .1]; %fluid intelligence
+range_c=[1.5, 1.5, .1, .15 .15, .1]; %all allometry
+%range_c = [.1, .1, .25, .25, .1]; %fluid intelligence
 
 ncolors = colors_p/255;
 ncolors2= [[1,1,1];ncolors];
@@ -84,26 +84,26 @@ for i=1:n_samp
         out_s = region_to_atlas(out,Cerebra_s);
         out_s(abs(out_s) < range_c(j)/93 & out_s ~= 0) = range_c(j)/93 + eps;
 
-        %if ismember(j, [1, 2]) %for allometry
-        %    colormap(ncolors2)
-        %    figure;SurfStatViewData_yz_22(out_s,s,[.5,range_c(j)],strcat('estimate'));
-        %    pause(1);set(gcf,'color','w');colorbar off
-        %    colormap(ncolors2)
-        %else
-        cm = ncolors;
-        %end
+        if ismember(j, [1, 2]) %for allometry
+            colormap(ncolors2)
+            figure;SurfStatViewData_yz_22(out_s,s,[.5,range_c(j)],strcat('estimate'));
+            pause(1);set(gcf,'color','w');colorbar off
+            colormap(ncolors2)
+        else
+            cm = ncolors;
+            %end
 
-        %if i == 4 %conditional if we want to add a colorbar in the matched
-        %    colormap(cm)
-        %    figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
-        %    pause(1);set(gcf,'color','w')
-        %    colormap(cm)
-        %else
-        colormap(cm)
-        figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
-        pause(1);set(gcf,'color','w');colorbar off
-        colormap(cm)
-        %end
+            %if i == 4 %conditional if we want to add a colorbar in the matched
+            %    colormap(cm)
+            %    figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
+            %    pause(1);set(gcf,'color','w')
+            %    colormap(cm)
+            %else
+            colormap(cm)
+            figure;SurfStatViewData_yz_22(out_s,s,[-range_c(j),range_c(j)],strcat('estimate'));
+            pause(1);set(gcf,'color','w');colorbar off
+            colormap(cm)
+        end
         %end
 
         export_fig(strcat(folder, '/', out_fold, '/', model, '_', samples(i),'_',contrasts(j),'.png'),'-m4')

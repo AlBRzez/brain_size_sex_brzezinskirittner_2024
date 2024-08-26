@@ -340,7 +340,7 @@ s_sex <-
 
 s_sex_agem <- 
   ggplot(scat_df |> filter(term_c == "sex_male_agem"),
-         aes(x = `TIV and age matched`, y = `Not matched`)) +
+         aes(x = `Not matched`, y = `TIV and age matched`)) +
   geom_hline(yintercept = 0, color = "#595959", linetype = 2) +
   geom_vline(xintercept = 0, color = "#595959", linetype = 2) +
   geom_point(alpha = .4) +
