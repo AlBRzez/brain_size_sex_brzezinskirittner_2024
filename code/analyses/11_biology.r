@@ -7,6 +7,7 @@ library(stringr)
 library(cowplot)
 library(scales)
 library(glue)
+library(grid)
 library(ggradar)
 library(patchwork)
 
@@ -589,7 +590,7 @@ s_b2 <- plot_grid(yeo_sex_rv, cyto_sex_rv) +
                   theme = theme(plot.title = element_text(size = 16, face = "bold", color = "#ae2012", hjust = .5)))
 s_b3 <- plot_grid(s_b1, s_b2)
 s_bf <- s_b3 + plot_annotation("Sex estimates",
-                    theme = theme(plot.title = element_text(size = 18, face = "bold")))
+                               theme = theme(plot.title = element_text(size = 18, face = "bold")))
 
 ggsave(here("outputs", "plots", "supplementary", "s5_biol_sex_samples.png"),
        s_bf, width = 16, height = 10, bg = "white", dpi = 600)
@@ -692,9 +693,26 @@ ct_sch <-
   filter(metric == "ct") |> 
   select(-metric) 
 
+radar_data <- list(vol_cyto = vol_cyto, 
+                   area_cyto = area_cyto, 
+                   ct_cyto = ct_cyto, 
+                   vol_sch = vol_sch, 
+                   area_sch = area_sch, 
+                   ct_sch = ct_sch)
+
+adjust <- function(df) {
+  df[1, 2:8] <- df[1, 2:8] - .1
+  df[2, 2:8] <- df[2, 2:8] + .1
+  return(df)
+}
+
+radar_data_adj <- lapply(radar_data, adjust)
+names(radar_data_adj) <- paste0(names(radar_data_adj), "_adj")
+
+list2env(radar_data_adj, envir = .GlobalEnv)
 
 
-sex_radar <- function(dat, m1, m2)  {
+sex_radar <- function(dat, m1, m2, lin_sz)  {
   ggradar(
     dat,
     grid.min = m1, grid.max = m2, grid.mid = 0,
@@ -707,8 +725,8 @@ sex_radar <- function(dat, m1, m2)  {
     gridline.mid.colour = "#191919",
     gridline.max.colour = "#cccfcf",
     legend.text.size = 10,
-    group.line.width = 1,
-    group.point.size = 4,
+    group.line.width = rep(lin_sz, each = 8),
+    group.point.size = 3,
     gridline.min.linetype = 2,
     gridline.mid.linetype = 1,
     gridline.max.linetype = 2,
@@ -718,64 +736,88 @@ sex_radar <- function(dat, m1, m2)  {
     grid.label.size = 6,
     gridline.label.offset = 0,
     plot.legend = F
-  ) #+
-  # guides(color = guide_legend(override.aes = list(linetype = 0)))
+  ) 
 }
 
 min(vol_cyto[,-1])
 max(vol_cyto[,-1])
-radar_cyto_vol <- sex_radar(vol_cyto, -1, 1)
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_vol.png"),
-       radar_cyto_vol, width = 5, height = 5, dpi = 600, bg = "white")
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_vol.svg"),
-       radar_cyto_vol, width = 5, height = 5, dpi = 600, bg = "white")
+radar_cyto_vol <- sex_radar(vol_cyto_adj, -1, 1, c(1, 1, 1, 1))
+lwd_radar_cyto_vol <- sex_radar(vol_cyto, -1, 1, c(5, 2.5, 1, 1))
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_vol.png"),
+#        radar_cyto_vol, width = 5, height = 5, dpi = 600, bg = "white")
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_vol.svg"),
+#        radar_cyto_vol, width = 5, height = 5, dpi = 600, bg = "white")
 
 min(ct_cyto[,-1])
 max(ct_cyto[,-1])
-radar_cyto_ct <- sex_radar(ct_cyto, -1, 1)
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_ct.png"),
-       radar_cyto_ct, width = 5, height = 5, dpi = 600, bg = "white")
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_ct.svg"),
-       radar_cyto_ct, width = 5, height = 5, dpi = 600, bg = "white")
+radar_cyto_ct <- sex_radar(ct_cyto_adj, -1, 1, c(1, 1, 1, 1))
+lwd_radar_cyto_ct <- sex_radar(ct_cyto, -1, 1, c(4, 2, 1, 1.5))
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_ct.png"),
+#        radar_cyto_ct, width = 5, height = 5, dpi = 600, bg = "white")
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_ct.svg"),
+#        radar_cyto_ct, width = 5, height = 5, dpi = 600, bg = "white")
 
 min(area_cyto[,-1])
 max(area_cyto[,-1])
-radar_cyto_area <- sex_radar(area_cyto, -1, 1)
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_area.png"),
-       radar_cyto_area, width = 5, height = 5, dpi = 600, bg = "white")
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_area.svg"),
-       radar_cyto_area, width = 5, height = 5, dpi = 600, bg = "white")
+radar_cyto_area <- sex_radar(area_cyto_adj, -1, 1, c(1, 1, 1, 1))
+lwd_radar_cyto_area <- sex_radar(area_cyto, -1, 1, c(5, 2.5, 1, 1))
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_area.png"),
+#        radar_cyto_area, width = 5, height = 5, dpi = 600, bg = "white")
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_cyto_area.svg"),
+#        radar_cyto_area, width = 5, height = 5, dpi = 600, bg = "white")
 
 min(vol_sch[,-1])
 max(vol_sch[,-1])
-radar_sch_vol <- sex_radar(vol_sch, -1, 1)
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_vol.png"),
-       radar_sch_vol, width = 5, height = 5, dpi = 600, bg = "white")
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_vol.svg"),
-       radar_sch_vol, width = 5, height = 5, dpi = 600, bg = "white")
+radar_sch_vol <- sex_radar(vol_sch_adj, -1, 1, c(1, 1, 1, 1))
+lwd_radar_sch_vol <- sex_radar(vol_sch, -1, 1, c(5, 2.5, 1, 1))
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_vol.png"),
+#        radar_sch_vol, width = 5, height = 5, dpi = 600, bg = "white")
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_vol.svg"),
+#        radar_sch_vol, width = 5, height = 5, dpi = 600, bg = "white")
 
 min(ct_sch[,-1])
 max(ct_sch[,-1])
-radar_sch_ct <- sex_radar(ct_sch, -1, 1)
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_ct.png"),
-       radar_sch_ct, width = 5, height = 5, dpi = 600, bg = "white")
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_ct.svg"),
-       radar_sch_ct, width = 5, height = 5, dpi = 600, bg = "white")
+radar_sch_ct <- sex_radar(ct_sch_adj, -1, 1, c(1, 1, 1, 1))
+lwd_radar_sch_ct <- sex_radar(ct_sch, -1, 1, c(4, 2, 1, 1.5))
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_ct.png"),
+#        radar_sch_ct, width = 5, height = 5, dpi = 600, bg = "white")
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_ct.svg"),
+#        radar_sch_ct, width = 5, height = 5, dpi = 600, bg = "white")
 
 min(area_sch[,-1])
 max(area_sch[,-1])
-radar_sch_area <- sex_radar(area_sch, -1, 1)
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_area.png"),
-       radar_sch_area, width = 5, height = 5, dpi = 600, bg = "white")
-ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_area.svg"),
-       radar_sch_area, width = 5, height = 5, dpi = 600, bg = "white")
+radar_sch_area <- sex_radar(area_sch_adj, -1, 1, c(1, 1, 1, 1))
+lwd_radar_sch_area <- sex_radar(area_sch, -1, 1, c(5, 2.5, 1, 1))
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_area.png"),
+#        radar_sch_area, width = 5, height = 5, dpi = 600, bg = "white")
+# ggsave(here("outputs", "plots", "main_figures", "fig2_radar_sch_area.svg"),
+#        radar_sch_area, width = 5, height = 5, dpi = 600, bg = "white")
 
 complete_radars <- 
-  (radar_sch_vol | radar_sch_area | radar_sch_ct) / (radar_cyto_vol | radar_cyto_area | radar_cyto_ct) 
+  (radar_sch_vol | radar_sch_area | radar_sch_ct) / 
+  (radar_cyto_vol | radar_cyto_area | radar_cyto_ct) 
 
 ggsave(here("outputs", "plots", "main_figures", "fig2_complete_radars.png"),
        complete_radars, width = 10, height = 6, dpi = 600, bg = "white")
 ggsave(here("outputs", "plots", "main_figures", "fig2_complete_radars.svg"),
        complete_radars, width = 10, height = 6, dpi = 600, bg = "white")
+
+
+
+
+col_label_sch <- wrap_elements(panel = textGrob("Functional networks"))
+col_label_cyto <- wrap_elements(panel = textGrob("Cytoarchitectonic classes"))
+complete_radars_lw <- 
+  (col_label_sch | col_label_cyto) /
+  (lwd_radar_sch_vol | lwd_radar_cyto_vol) /
+  (lwd_radar_sch_area | lwd_radar_cyto_area) / 
+  (lwd_radar_sch_ct | lwd_radar_cyto_ct) +
+  plot_layout(heights = c(.1, 1, 1, 1))
+
+
+ggsave(here("outputs", "plots", "supplementary", "fig2_complete_radars_lwd.png"),
+       complete_radars_lw, width = 7, height = 10, dpi = 600, bg = "white")
+ggsave(here("outputs", "plots", "supplementary", "fig2_complete_radars_lwd.svg"),
+       complete_radars_lw, width = 7, height = 10, dpi = 600, bg = "white")
 
 
