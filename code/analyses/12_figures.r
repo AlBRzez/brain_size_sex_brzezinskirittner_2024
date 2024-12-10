@@ -99,6 +99,128 @@ ggsave(here("outputs", "plots", "main_figures", "fig1_violin_v1_months.png"),
 ggsave(here("outputs", "plots", "main_figures", "fig1_violin_v1_months.svg"), 
        violin_fig1_v1, width = 3.7, height = 12, bg = "white", dpi = 600)
 
+
+# addition to change the range for the interaction estimate
+tmp_interaction <- 
+  get_plot_df(lm_coef, m = as.character(models_guide[1, 1]), intercept = T)
+
+tmp_t_df <- get_t(tmp_interaction)
+
+
+violin_tmp <- function(df, df_t, subt) {
+  
+  hm <- .15
+  df_t <- 
+    df_t |>
+    mutate(y = case_when(
+      start == "Extreme sample" & end == "Not matched" ~ hm + .15,
+      start == "Extreme sample" & end == "Age matched" ~ hm + .07,
+      start == "Not matched" & end == "Age matched" ~ hm + .07,
+      start == "Extreme sample" & end == "TIV and age matched" ~ hm + .15,
+      start == "Not matched" & end == "TIV and age matched" ~ hm + .07,
+      start == "Age matched" & end == "TIV and age matched" ~ hm #+ .2
+    ))
+  
+  
+  df_t <-
+    df_t |>
+    mutate(
+      start = factor(start, levels = c("Extreme sample",
+                                       "Not matched",
+                                       "Age matched",
+                                       "TIV and age matched",
+                                       "FS e-TIV and age matched")),
+      end = factor(end, levels = c("Extreme sample",
+                                   "Not matched",
+                                   "Age matched",
+                                   "TIV and age matched",
+                                   "FS e-TIV and age matched")),
+    )
+  
+
+  df |> 
+    mutate(
+      clean_sample = factor(clean_sample, levels = samp_order),
+      clean_name = factor(clean_name, levels = c(
+        "Intercept (for female)",
+        "Age",
+        "Age (months)",
+        "Sex (male)",
+        "Sex (male):age",
+        "Sex (male):age (months)",
+        "Age<sup>2</sup>",
+        "Age<sup>2</sup> (months)",
+        "Sex (male):age<sup>2</sup>",
+        "Sex (male):age<sup>2</sup> (months)",
+        "TIV",
+        "TBV",
+        "Euler number"
+      ))
+    ) |> 
+    ggplot(aes(x = factor(clean_sample), y = estimate, color = clean_sample)) +
+    geom_violin(scale = "width", aes(fill = clean_sample), alpha = .5) +
+    geom_boxplot(width = .3, show.legend = FALSE) +
+    geom_hline(yintercept = 0, color = "#595959", linetype = "dashed") +
+    facet_wrap(~factor(clean_name), ncol = 1) +
+    geom_text(
+      data = df_t,
+      aes(label = stars, x = (as.numeric(end) - .5), y = y, color = end),
+      show.legend = FALSE) +
+    geom_segment(
+      data = df_t,
+      aes(x = start, xend = end, y = (y - .05), yend = (y - .05)),
+      color = "#595959"
+    ) +
+    geom_segment(
+      data = df_t,
+      aes(x = start, xend = start, y = (y - .05), yend = (y - .1)),
+      color = "#595959"
+    ) +
+    geom_segment(
+      data = df_t,
+      aes(x = end, xend = end, y = (y - .05), yend = (y - .1)),
+      color = "#595959"
+      
+    ) +
+    scale_y_continuous(limits = c(-0.3, 0.3)) +
+    labs(
+      title = "Model's estimates",
+      subtitle = subt,
+      x = "Sample",
+      y = "Estimates",
+      caption = "Paired t-tests: <b>\\*</b> = <i>p-value</i> < 0.05;<br><b>\\*\\*</b> = <i>p-value</i> < 0.01; <b>\\*\\*\\*</b> = <i>p-value</i> < 0.001"
+    ) +
+    scale_color_manual(
+      values = colors_samples,
+      aesthetics = c("color", "fill")
+    ) +
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
+    plots_theme +
+    theme(
+      plot.caption = element_markdown(color = "#595959", size = 9),
+      plot.subtitle = element_markdown(),
+      # strip.text = element_text(size = 12),
+      legend.position = "none",
+      
+    ) +
+    annotate("segment", x=-Inf, xend=Inf, y=-Inf, yend=-Inf,
+             color = "#000000",  linewidth = 1.2) +
+    annotate("segment", x=-Inf, xend=-Inf, y=-Inf, yend=Inf,
+             color = "#000000",  linewidth = 1.2)
+  
+}
+
+
+violin_fig1_int <- 
+  violin_tmp(tmp_interaction, tmp_t_df, 
+             subt = glue("{models_guide[1, 2]}: {models_guide[1, 3]}"))
+
+ggsave(here("outputs", "plots", "main_figures", "fig1_violin_v1_months_interaction.png"), 
+       violin_fig1_int, width = 3.7, height = 12, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_violin_v1_months_interaction.svg"), 
+       violin_fig1_int, width = 3.7, height = 12, bg = "white", dpi = 600)
+
+
 # Fig 3 -----------------------------------------------------------------------
 mod_df_allom <- get_plot_df(allom |> filter(window_size == 60), 
                             m = "lin_int_regular",

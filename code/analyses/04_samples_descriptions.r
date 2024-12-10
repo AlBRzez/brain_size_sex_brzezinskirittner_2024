@@ -170,10 +170,10 @@ comp_plot <- function(samp, samp_name) {
     scale_linewidth_manual(values = c(1, 1.5)) +
     plots_theme +
     theme(
-          plot.subtitle = element_text(face = "bold", size = 18, 
-                                       color = "#595959"),
-          axis.text = element_text(size = 16),
-          axis.title = element_text(size = 16)
+      plot.subtitle = element_text(face = "bold", size = 18, 
+                                   color = "#595959"),
+      axis.text = element_text(size = 16),
+      axis.title = element_text(size = 16)
     ) +
     guides(color = guide_legend(override.aes = list(linetype = c(1, 1),
                                                     alpha = c(1,1))))
@@ -271,7 +271,7 @@ fsnm <- plot_grid(fvsnm_age, fvsnm_tiv, nrow = 2)
 
 
 f_fsnm <- fsnm + plot_annotation(title = "Samples distribution: <span style='color:#595959'>Full</span> vs <span style='color:#ae2012'>Not matched</span> samples",
-                                  theme = theme(plot.title = element_markdown(size = 16, face = "bold")))
+                                 theme = theme(plot.title = element_markdown(size = 16, face = "bold")))
 
 ggsave(here("outputs", "plots", "supplementary", "s1_full_vs_notmatched_samp_dist.png"), 
        f_fsnm, width = 7, height = 10, bg = "white")
@@ -281,11 +281,12 @@ ggsave(here("outputs", "plots", "supplementary", "s1_full_vs_notmatched_samp_dis
 # plots for tiv vs tbv ------
 tiv_tbv <- function(samp, samp_name) {
   df <- 
-    full |> 
+    samp |> 
     select(subject_id, sex, age_years, age_months, 
            tiv, tbv = brain_seg_not_vent) |> 
     pivot_longer(c(tiv, tbv)) |> 
     mutate(name_b = toupper(name)) 
+  
   
   ggplot(df, aes(x = age_months, y = value)) +
     facet_wrap(~sex, ncol = 1) +
@@ -319,9 +320,96 @@ tiv_tbv <- function(samp, samp_name) {
   
 }
 
+tiv_tbv_v2 <- function(samp, samp_name) {
+  df <- 
+    samp |> 
+    select(subject_id, sex, age_years, age_months, 
+           tiv, tbv = brain_seg_not_vent) |> 
+    pivot_longer(c(tiv, tbv)) |> 
+    mutate(name_b = toupper(name)) 
+  
+  ggplot(df, aes(x = age_months, y = value, linetype = name_b)) +
+    geom_smooth(method = "lm",
+                aes(group = interaction(name_b, sex), 
+                    color = sex, 
+                    linetype = name_b)) +
+    labs(
+      title = samp_name,
+      x = "Age",
+      y = "Volume (mm<sup>3</sup>)") +
+    scale_color_manual(values = c(color_sex, "TIV" = "black", "TBV" = "black")) +
+    # scale_color_manual(values = color_sex) +
+    scale_x_continuous(limits = c(530, 990), breaks = seq(540, 960, 60),
+                       labels = seq(45, 80, 5)) +
+    scale_y_continuous(limits = c(840000, 1760000), labels = comma,
+                       expand = expansion(mult = c(0, 0.05))
+    ) +
+    plots_theme +
+    theme(axis.title.y = element_markdown(),
+          legend.position = "bottom",
+          axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size = 12)
+    ) +
+    annotate("segment", x=-Inf, xend=990, y=-Inf, yend=-Inf,
+             color = "#000000",  linewidth = 1.2) +
+    scale_linetype_manual(name = "Metric",
+                          values = c(3,1),
+                          breaks = c("TBV", "TIV")) +
+    guides(
+      color = guide_legend(override.aes = list(
+        linewidth = c(1, 1),
+        alpha = c(1,1)))
+      )
+  
+}
+
+tiv_tbv_substraction <- function(samp, samp_name) {
+  df <- 
+    samp |>
+    select(subject_id, sex, age_years, age_months, 
+           tiv, tbv = brain_seg_not_vent) |> 
+    mutate(dif = tiv - tbv) 
+  
+  ggplot(df, aes(x = age_months, y = dif)) +
+    
+    geom_smooth(method = "lm",
+                aes(group = sex, 
+                    color = sex)) +
+    labs(
+      title = samp_name,
+      x = "Age",
+      y = "Difference between TIV and TBV (mm<sup>3</sup>)") +
+    
+    scale_color_manual(values = color_sex) +
+    scale_x_continuous(limits = c(530, 990), breaks = seq(540, 960, 60),
+                       labels = seq(45, 80, 5)) +
+    scale_y_continuous(limits = c(175000, 425000), labels = comma,
+                       expand = expansion(mult = c(0, 0.05))
+    ) +
+    plots_theme +
+    theme(axis.title.y = element_markdown(),
+          legend.position = "bottom",
+          axis.text.x = element_text(size = 14),
+          axis.text.y = element_text(size = 12)
+    ) +
+    annotate("segment", x=-Inf, xend=990, y=-Inf, yend=-Inf,
+             color = "#000000",  linewidth = 1.2)
+  
+}
+
 tvt_f <- tiv_tbv(get(samples_ref$df[1]), samples_ref$clean_sample[1]) 
 tvt_m <- tiv_tbv(get(samples_ref$df[2]), samples_ref$clean_sample[2]) 
 tvt_nm <- tiv_tbv(get(samples_ref$df[4]), samples_ref$clean_sample[4]) 
+
+tvt_f_v2 <- tiv_tbv_v2(get(samples_ref$df[1]), samples_ref$clean_sample[1]) 
+tvt_m_v2 <- tiv_tbv_v2(get(samples_ref$df[2]), samples_ref$clean_sample[2]) 
+tvt_nm_v2 <- tiv_tbv_v2(get(samples_ref$df[4]), samples_ref$clean_sample[4]) 
+
+tvt_f_s <- tiv_tbv_substraction(get(samples_ref$df[1]), samples_ref$clean_sample[1]) 
+tvt_m_s <- tiv_tbv_substraction(get(samples_ref$df[2]), samples_ref$clean_sample[2]) 
+tvt_nm_s <- tiv_tbv_substraction(get(samples_ref$df[4]), samples_ref$clean_sample[4]) 
+
+
 
 ggsave(here("outputs", "plots", "others", "fig1_full_tiv_tbv.png"), tvt_f,
        width = 6, height = 6, bg = "white", dpi = 600)
@@ -335,6 +423,36 @@ ggsave(here("outputs", "plots", "main_figures", "fig1_matched_tiv_tbv.svg"), tvt
        width = 6, height = 6, bg = "white", dpi = 600)
 ggsave(here("outputs", "plots", "main_figures", "fig1_notmatched_tiv_tbv.svg"), tvt_nm,
        width = 6, height = 6, bg = "white", dpi = 600)
+
+ggsave(here("outputs", "plots", "others", "fig1_full_tiv_tbv_v2.png"), tvt_f_v2,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_matched_tiv_tbv_v2.png"), tvt_m_v2,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_notmatched_tiv_tbv_v2.png"), tvt_nm_v2,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "others", "fig1_full_tiv_tbv_v2.svg"), tvt_f_v2,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_matched_tiv_tbv_v2.svg"), tvt_m_v2,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_notmatched_tiv_tbv_v2.svg"), tvt_nm_v2,
+       width = 8, height = 6, bg = "white", dpi = 600)
+
+ggsave(here("outputs", "plots", "others", "fig1_full_tiv_tbv_sub.png"), tvt_f_s,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_matched_tiv_tbv_sub.png"), tvt_m_s,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_notmatched_tiv_tbv_sub.png"), tvt_nm_s,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "others", "fig1_full_tiv_tbv_sub.svg"), tvt_f_s,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_matched_tiv_tbv_sub.svg"), tvt_m_s,
+       width = 8, height = 6, bg = "white", dpi = 600)
+ggsave(here("outputs", "plots", "main_figures", "fig1_notmatched_tiv_tbv_sub.svg"), tvt_nm_s,
+       width = 8, height = 6, bg = "white", dpi = 600)
+
+
+
+
 
 # Brain sizes ------------------------------------------------------------------
 # Visualization of different measures from fs segmentation 
