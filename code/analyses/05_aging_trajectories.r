@@ -12,7 +12,7 @@ library(lmerTest)
 print("loaded packages")
 source(here("code", "analyses", "helpers.r"))
 
-output_fold <- "trajectories"
+output_fold <- "trajectories_v2"
 if(!dir.exists(here("outputs", output_fold))) {
   dir.create(here("outputs", output_fold))
 }
@@ -91,9 +91,9 @@ all_data <- function(df, reg_number, dfs, mods, dfs_n, guide = NULL) { # "guide"
     models <- get_mod(reg_data, dfs[[samp]])
     for(i in 1:length(models)) {
       coef_tbl_s <- tidy(models[[i]]) |> 
-        mutate(df = dfs_n[samp], mod = mods[i])
+        mutate(df_samp = dfs_n[samp], mod = mods[i])
       goodness_tbl_s <- glance(models[[i]]) |> 
-        mutate(df = dfs_n[samp], mod = mods[i])
+        mutate(df_samp = dfs_n[samp], mod = mods[i])
       coef_tbl <- bind_rows(coef_tbl, coef_tbl_s)
       goodness_tbl <- bind_rows(goodness_tbl, goodness_tbl_s)
     }
